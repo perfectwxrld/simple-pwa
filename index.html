@@ -3,29 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мое простое PWA</title>
+    <title>Мой Музыкальный Плеер</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4285f4">
+    <meta name="theme-color" content="#1e1e24">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        h1 { color: #333; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #121214;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .player-card {
+            background-color: #1e1e24;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            text-align: center;
+            width: 280px;
+        }
+        .cover {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #8a2387, #e94057, #f27121);
+            margin: 0 auto 25px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            box-shadow: 0 8px 20px rgba(233, 64, 87, 0.3);
+        }
+        h2 {
+            margin: 10px 0 5px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        p {
+            color: #a0a0aa;
+            margin: 0 0 25px;
+            font-size: 14px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #e94057;
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        button.pause {
+            background-color: #3f3f46;
+        }
+        button.pause:hover {
+            background-color: #52525b;
+        }
+        button:hover {
+            background-color: #ff556f;
+        }
+        .progress-container {
+            background-color: #3f3f46;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 20px 0 10px;
+            height: 6px;
+            width: 100%;
+        }
+        .progress {
+            background-color: #e94057;
+            border-radius: 10px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
     </style>
 </head>
 <body>
-    <h1>Привет, мир!</h1>
-    <p>Это простейшее Progressive Web App.</p>
+
+    <div class="player-card">
+        <div class="cover">🎵</div>
+        <h2>Мой Трек</h2>
+        <p>Локальный аудиофайл</p>
+        
+        <audio id="audio" src="track.mp3"></audio>
+        
+        <div class="progress-container" id="progress-container">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="controls">
+            <button id="playBtn">PLAY</button>
+            <button id="pauseBtn" class="pause">PAUSE</button>
+        </div>
+    </div>
 
     <script>
-        // Проверяем, поддерживает ли браузер Service Worker
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const progress = document.getElementById('progress');
+        const progressContainer = document.getElementById('progress-container');
+
+        // Воспроизведение
+        playBtn.addEventListener('click', () => {
+            audio.play().catch(err => console.log("Кликните по экрану перед запуском:", err));
+        });
+
+        // Пауза
+        pauseBtn.addEventListener('click', () => {
+            audio.pause();
+        });
+
+        // Обновление полосы прогресса при проигрывании
+        audio.addEventListener('timeupdate', () => {
+            const { duration, currentTime } = audio;
+            if (duration) {
+                const progressPercent = (currentTime / duration) * 100;
+                progress.style.width = `${progressPercent}%`;
+            }
+        });
+
+        // Перемотка трека по клику на полосу прогресса
+        progressContainer.addEventListener('click', (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            if (duration) {
+                audio.currentTime = (clickX / width) * duration;
+            }
+        });
+
+        // Регистрация Service Worker для оффлайн работы
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('Service Worker успешно зарегистрирован:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Ошибка регистрации Service Worker:', error);
-                    });
+                    .then(reg => console.log('Service Worker активен:', reg.scope))
+                    .catch(err => console.log('Ошибка регистрации SW:', err));
             });
         }
     </script>

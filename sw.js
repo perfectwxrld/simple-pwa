@@ -1,10 +1,12 @@
-const CACHE_NAME = 'pwa-cache-v1';
+const CACHE_NAME = 'pwa-player-v1';
 const urlsToCache = [
     './index.html',
-    './manifest.json'
+    './manifest.json',
+    './sw.js',
+    './track.mp3' // Добавляем наш аудиофайл в кэш!
 ];
 
-// Установка Service Worker и кэширование файлов
+// Установка и кэширование ресурсов
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -14,12 +16,11 @@ self.addEventListener('install', event => {
     );
 });
 
-// Перехват сетевых запросов и выдача данных из кэша, если нет сети
+// Перехват запросов (работа приложения из кэша)
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Возвращаем из кэша, если найдено, иначе делаем запрос в сеть
                 return response || fetch(event.request);
             })
     );

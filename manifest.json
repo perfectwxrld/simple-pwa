@@ -1,10 +1,10 @@
 {
-  "name": "Мое простое PWA",
-  "short_name": "PWA",
+  "name": "Мой Музыкальный Плеер",
+  "short_name": "Плеер",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4285f4",
+  "background_color": "#121214",
+  "theme_color": "#1e1e24",
   "icons": [
     {
       "src": "https://via.placeholder.com/192",
