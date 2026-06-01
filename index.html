@@ -36,46 +36,50 @@
             justify-content: center;
             font-size: 64px;
             box-shadow: 0 8px 20px rgba(233, 64, 87, 0.3);
+            transition: border-radius 0.3s ease;
         }
-        h2 {
-            margin: 10px 0 5px;
-            font-size: 22px;
-            font-weight: 600;
+        /* Анимация вращения пластинки */
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
         }
-        p {
-            color: #a0a0aa;
-            margin: 0 0 25px;
-            font-size: 14px;
+        .playing .cover {
+            border-radius: 50%; /* Делаем круглым */
+            animation: spin 4s linear infinite;
         }
+        
+        h2 { margin: 10px 0 5px; font-size: 20px; font-weight: 600; }
+        p { color: #a0a0aa; margin: 0 0 25px; font-size: 14px; }
+        
         .controls {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            align-items: center;
+            gap: 10px;
             margin-top: 20px;
         }
         button {
-            background-color: #e94057;
+            background-color: #3f3f46;
             border: none;
             color: white;
-            padding: 14px 28px;
+            padding: 12px;
             font-size: 16px;
-            border-radius: 50px;
+            border-radius: 50%;
             cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.1s, background-color 0.2s;
+            width: 45px;
+            height: 45px;
+            transition: 0.2s;
         }
-        button:active {
-            transform: scale(0.95);
+        button:active { transform: scale(0.9); }
+        button:hover { background-color: #52525b; }
+        
+        #playPauseBtn {
+            background-color: #e94057;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
         }
-        button.pause {
-            background-color: #3f3f46;
-        }
-        button.pause:hover {
-            background-color: #52525b;
-        }
-        button:hover {
-            background-color: #ff556f;
-        }
+        #playPauseBtn:hover { background-color: #ff556f; }
+        
         .progress-container {
             background-color: #3f3f46;
             border-radius: 10px;
@@ -95,65 +99,119 @@
 </head>
 <body>
 
-    <div class="player-card">
-        <div class="cover">🎵</div>
-        <h2>Мой Трек</h2>
-        <p>Локальный аудиофайл</p>
+    <div class="player-card" id="player">
+        <div class="cover" id="coverEmoji">🎵</div>
+        <h2 id="title">Загрузка...</h2>
+        <p id="artist">Исполнитель</p>
         
-        <audio id="audio" src="track.mp3"></audio>
+        <audio id="audio" src=""></audio>
         
         <div class="progress-container" id="progress-container">
             <div class="progress" id="progress"></div>
         </div>
 
         <div class="controls">
-            <button id="playBtn">PLAY</button>
-            <button id="pauseBtn" class="pause">PAUSE</button>
+            <button id="prevBtn">⏮</button>
+            <button id="playPauseBtn">▶</button>
+            <button id="nextBtn">⏭</button>
         </div>
     </div>
 
     <script>
         const audio = document.getElementById('audio');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
         const progress = document.getElementById('progress');
         const progressContainer = document.getElementById('progress-container');
+        const title = document.getElementById('title');
+        const artist = document.getElementById('artist');
+        const coverEmoji = document.getElementById('coverEmoji');
+        const player = document.getElementById('player');
 
-        // Воспроизведение
-        playBtn.addEventListener('click', () => {
-            audio.play().catch(err => console.log("Кликните по экрану перед запуском:", err));
-        });
+        // Наш плейлист
+        const tracks = [
+            { name: "трек 1", artist: "hy1", file: "track1.mp3", emoji: "🔥" },
+            { name: "трек 2", artist: "s1rota", file: "track2.mp3", emoji: "💨" },
+            { name: "трек 3", artist: "j0pa", file: "track3.mp3", emoji: "🎧" }
+        ];
+
+        let trackIndex = 0;
+        let isPlaying = false;
+
+        // Загрузка данных трека
+        function loadTrack(track) {
+            title.innerText = track.name;
+            artist.innerText = track.artist;
+            coverEmoji.innerText = track.emoji;
+            audio.src = track.file;
+        }
+
+        // Играть трек
+        function playTrack() {
+            isPlaying = true;
+            player.classList.add('playing');
+            playPauseBtn.innerText = '⏸';
+            audio.play();
+        }
 
         // Пауза
-        pauseBtn.addEventListener('click', () => {
+        function pauseTrack() {
+            isPlaying = false;
+            player.classList.remove('playing');
+            playPauseBtn.innerText = '▶';
             audio.pause();
+        }
+
+        // Кнопка Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying ? pauseTrack() : playTrack();
         });
 
-        // Обновление полосы прогресса при проигрывании
+        // Следующий трек
+        function nextTrack() {
+            trackIndex = (trackIndex + 1) % tracks.length;
+            loadTrack(tracks[trackIndex]);
+            if (isPlaying) playTrack();
+        }
+
+        // Предыдущий трек
+        function prevTrack() {
+            trackIndex = (trackIndex - 1 + tracks.length) % tracks.length;
+            loadTrack(tracks[trackIndex]);
+            if (isPlaying) playTrack();
+        }
+
+        nextBtn.addEventListener('click', nextTrack);
+        prevBtn.addEventListener('click', prevTrack);
+        
+        // Автопереключение, когда трек закончился
+        audio.addEventListener('ended', nextTrack);
+
+        // Полоса прогресса (обновление)
         audio.addEventListener('timeupdate', () => {
-            const { duration, currentTime } = audio;
-            if (duration) {
-                const progressPercent = (currentTime / duration) * 100;
+            if (audio.duration) {
+                const progressPercent = (audio.currentTime / audio.duration) * 100;
                 progress.style.width = `${progressPercent}%`;
             }
         });
 
-        // Перемотка трека по клику на полосу прогресса
+        // Перемотка
         progressContainer.addEventListener('click', (e) => {
             const width = progressContainer.clientWidth;
             const clickX = e.offsetX;
-            const duration = audio.duration;
-            if (duration) {
-                audio.currentTime = (clickX / width) * duration;
+            if (audio.duration) {
+                audio.currentTime = (clickX / width) * audio.duration;
             }
         });
 
-        // Регистрация Service Worker для оффлайн работы
+        // Инициализация при запуске
+        loadTrack(tracks[trackIndex]);
+
+        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker активен:', reg.scope))
-                    .catch(err => console.log('Ошибка регистрации SW:', err));
+                navigator.serviceWorker.register('sw.js');
             });
         }
     </script>
