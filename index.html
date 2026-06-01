@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мое простое PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4285f4">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Привет, мир!</h1>
+    <p>Это простейшее Progressive Web App.</p>
+
+    <script>
+        // Проверяем, поддерживает ли браузер Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker успешно зарегистрирован:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Ошибка регистрации Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
